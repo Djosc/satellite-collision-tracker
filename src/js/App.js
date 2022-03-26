@@ -1,21 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { CzmlDataSource, Viewer } from 'resium';
+
+import * as cesium from 'cesium';
+
+import { CzmlDataSource, Entity, Viewer } from 'resium';
+
+import { fetchTLE, computePosition, computeOrbit } from './utils';
 
 import { satellites } from '../data/czml';
 
 function App() {
-	// const [data, setData] = useState('');
+	const [satPositionData, setSatPositionData] = useState(null);
+	const [positionsOverTime, setPositionsOverTime] = useState(null);
 
-	useEffect(() => {
-		fetch('https://celestrak.com/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE')
-			.then((response) => response.text())
-			.then((data) => console.log(data));
+	let isMounted = false;
+
+	useEffect(async () => {
+		isMounted = true;
+
+		if (isMounted) {
+			var tle = await fetchTLE();
+			// console.log(tle);
+
+			var cartesian3Data = computePosition(tle);
+			console.log('satPosition ' + cartesian3Data);
+
+			var orbit = computeOrbit(tle);
+
+			setSatPositionData(cartesian3Data);
+			setPositionsOverTime(orbit);
+		}
+
+		return () => {
+			isMounted = false;
+			// setSatData({});
+		};
 	}, []);
 
 	return (
-		<Viewer full>
-			<CzmlDataSource data={satellites} />
-		</Viewer>
+		<>
+			{positionsOverTime !== null ? (
+				<Viewer full>
+					<Entity
+						position={positionsOverTime}
+						point={{ pixelSize: 10, color: cesium.Color.RED }}
+					/>
+					{/* <CzmlDataSource data={satellites} /> */}
+				</Viewer>
+			) : (
+				<></>
+			)}
+		</>
 	);
 }
 

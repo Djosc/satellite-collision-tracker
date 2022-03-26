@@ -13,7 +13,7 @@ module.exports = {
 		app: './src/js/index.js',
 	},
 	output: {
-		filename: 'app.js',
+		filename: 'bundle.js',
 		path: path.resolve(__dirname, 'dist'),
 		sourcePrefix: '',
 	},
