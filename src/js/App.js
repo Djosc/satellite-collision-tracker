@@ -8,6 +8,8 @@ import { fetchTLE, computePosition, computeOrbit } from './utils';
 
 import { satellites } from '../data/czml';
 
+import satData from '../data/sats.json';
+
 function App() {
 	const [satPositionData, setSatPositionData] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
@@ -17,17 +19,17 @@ function App() {
 	useEffect(async () => {
 		isMounted = true;
 
+		// var orbitsArr = [];
+		// var promisesArr = [];
+		// var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
+		// console.log(satIDs);
+
 		if (isMounted) {
-			var tle = await fetchTLE();
-			// console.log(tle);
+			setOrbits();
+			// console.log(orbits);
+			// setPositionsOverTime(orbits);
 
-			var cartesian3Data = computePosition(tle);
-			console.log('satPosition ' + cartesian3Data);
-
-			var orbit = computeOrbit(tle);
-
-			setSatPositionData(cartesian3Data);
-			setPositionsOverTime(orbit);
+			// setSatPositionData(cartesian3Data);
 		}
 
 		return () => {
@@ -36,14 +38,45 @@ function App() {
 		};
 	}, []);
 
+	const setOrbits = async () => {
+		var orbitsArr = [];
+		var tleArr = [];
+		var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
+
+		satIDs.forEach(async (id) => {
+			let promise = fetchTLE(id);
+			tleArr.push(promise);
+			// console.log(tle);
+		});
+
+		Promise.all(tleArr)
+			.then((results) => {
+				results.forEach((tle) => {
+					// var cartesian3Data = computePosition(tle);
+					// console.log('satPosition ' + cartesian3Data);
+
+					var orbit = computeOrbit(tle);
+
+					orbitsArr.push(orbit);
+				});
+				return orbitsArr;
+			})
+			.then((orbits) => {
+				setPositionsOverTime(orbits);
+			});
+	};
+
 	return (
 		<>
 			{positionsOverTime !== null ? (
 				<Viewer full>
-					<Entity
-						position={positionsOverTime}
-						point={{ pixelSize: 10, color: cesium.Color.RED }}
-					/>
+					{positionsOverTime.map((orbit, idx) => (
+						<Entity
+							key={idx}
+							position={orbit}
+							point={{ pixelSize: 10, color: cesium.Color.RED }}
+						/>
+					))}
 					{/* <CzmlDataSource data={satellites} /> */}
 				</Viewer>
 			) : (

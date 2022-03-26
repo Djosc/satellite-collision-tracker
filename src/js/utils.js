@@ -1,9 +1,9 @@
 import { Cartesian3, SampledPositionProperty, JulianDate } from 'cesium';
 import * as satellite from 'satellite.js';
 
-export const fetchTLE = async () => {
+export const fetchTLE = async (id) => {
 	let data = await fetch(
-		'https://celestrak.com/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE'
+		`https://celestrak.com/NORAD/elements/gp.php?CATNR=${id}&FORMAT=TLE`
 	)
 		.then((response) => response.text())
 		.then((data) => {
