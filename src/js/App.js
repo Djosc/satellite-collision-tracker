@@ -9,6 +9,7 @@ import { fetchTLE, computePosition, computeOrbit } from './utils';
 import { satellites } from '../data/czml';
 
 import satData from '../data/sats.json';
+// import satData from '../data/collision.json';
 
 function App() {
 	const [satPositionData, setSatPositionData] = useState(null);
@@ -19,22 +20,12 @@ function App() {
 	useEffect(async () => {
 		isMounted = true;
 
-		// var orbitsArr = [];
-		// var promisesArr = [];
-		// var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
-		// console.log(satIDs);
-
 		if (isMounted) {
 			setOrbits();
-			// console.log(orbits);
-			// setPositionsOverTime(orbits);
-
-			// setSatPositionData(cartesian3Data);
 		}
 
 		return () => {
 			isMounted = false;
-			// setSatData({});
 		};
 	}, []);
 
@@ -46,19 +37,22 @@ function App() {
 		satIDs.forEach(async (id) => {
 			let promise = fetchTLE(id);
 			tleArr.push(promise);
-			// console.log(tle);
 		});
 
 		Promise.all(tleArr)
 			.then((results) => {
 				results.forEach((tle) => {
-					// var cartesian3Data = computePosition(tle);
-					// console.log('satPosition ' + cartesian3Data);
+					var [tleLine0, tleLine1, tleLine2] = tle.split('\n');
+					tleLine0 = tleLine0.trim();
 
-					var orbit = computeOrbit(tle);
+					var orbit = computeOrbit(tleLine1, tleLine2);
 
-					orbitsArr.push(orbit);
+					orbitsArr.push({
+						orbit: orbit,
+						name: tleLine0,
+					});
 				});
+				console.log(orbitsArr);
 				return orbitsArr;
 			})
 			.then((orbits) => {
@@ -73,7 +67,13 @@ function App() {
 					{positionsOverTime.map((orbit, idx) => (
 						<Entity
 							key={idx}
-							position={orbit}
+							position={orbit.orbit}
+							name={orbit.name}
+							label={{
+								text: orbit.name,
+								scale: 0.5,
+								pixelOffset: new cesium.Cartesian2(-25, 17),
+							}}
 							point={{ pixelSize: 10, color: cesium.Color.RED }}
 						/>
 					))}

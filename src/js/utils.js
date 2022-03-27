@@ -38,12 +38,11 @@ export const computePosition = (tleData) => {
 	return cartesian3Data;
 };
 
-export const computeOrbit = (tleData) => {
-	const [tleLine0, tleLine1, tleLine2] = tleData.split('\n');
+export const computeOrbit = (tleLine1, tleLine2) => {
 	const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
 
-	const totalSeconds = 100000;
-	const timeStepInSeconds = 10;
+	const totalSeconds = 700000;
+	const timeStepInSeconds = 20;
 	const start = JulianDate.fromDate(new Date());
 
 	const positionsOverTime = new SampledPositionProperty();
