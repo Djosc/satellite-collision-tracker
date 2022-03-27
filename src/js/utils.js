@@ -1,4 +1,11 @@
-import { Cartesian3, SampledPositionProperty, JulianDate } from 'cesium';
+import {
+	Cartesian3,
+	SampledPositionProperty,
+	JulianDate,
+	ReferenceFrame,
+	ExtrapolationType,
+	LagrangePolynomialApproximation,
+} from 'cesium';
 import * as satellite from 'satellite.js';
 
 export const fetchTLE = async (id) => {
@@ -39,7 +46,11 @@ export const computePosition = (tleData) => {
 };
 
 export const computeOrbit = (tleLine1, tleLine2) => {
+	const cart3Arr = [];
+
 	const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
+
+	const orbitalPeriod = getOrbitalPeriod(satrec);
 
 	const totalSeconds = 700000;
 	const timeStepInSeconds = 20;
@@ -64,5 +75,46 @@ export const computeOrbit = (tleLine1, tleLine2) => {
 		positionsOverTime.addSample(time, position);
 	}
 
-	return positionsOverTime;
+	return [positionsOverTime, orbitalPeriod];
+};
+
+export const computeOrbitInertial = (tleLine1, tleLine2) => {
+	const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
+
+	const orbitalPeriod = getOrbitalPeriod(satrec);
+
+	const totalSeconds = 700000;
+	const timeStepInSeconds = 20;
+	const start = JulianDate.fromDate(new Date());
+
+	const sampledPositionInertial = new SampledPositionProperty(ReferenceFrame.INERTIAL);
+	sampledPositionInertial.backwardExtrapolationType = ExtrapolationType.HOLD;
+	sampledPositionInertial.forwardExtrapolationType = ExtrapolationType.HOLD;
+	sampledPositionInertial.setInterpolationOptions({
+		interpolationDegree: 5,
+		interpolationAlgorithm: LagrangePolynomialApproximation,
+	});
+
+	for (let i = 0; i < totalSeconds; i += timeStepInSeconds) {
+		const time = JulianDate.addSeconds(start, i, new JulianDate());
+		const jsDate = JulianDate.toDate(time);
+
+		const eci = satellite.propagate(satrec, jsDate);
+		const gmst = satellite.gstime(jsDate);
+		const pos = new Cartesian3(
+			eci.position.x * 1000,
+			eci.position.y * 1000,
+			eci.position.z * 1000
+		);
+
+		sampledPositionInertial.addSample(time, pos);
+	}
+
+	return [sampledPositionInertial, orbitalPeriod];
+};
+
+const getOrbitalPeriod = (satrec) => {
+	const meanMotionRad = satrec.no;
+	const period = (2 * Math.PI) / meanMotionRad;
+	return period;
 };
