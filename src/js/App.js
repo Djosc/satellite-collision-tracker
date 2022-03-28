@@ -2,26 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import * as cesium from 'cesium';
 
-import {
-	Camera,
-	CameraFlyHome,
-	CameraFlyTo,
-	CameraLookAt,
-	CzmlDataSource,
-	Entity,
-	Scene,
-	Viewer,
-} from 'resium';
+import { CzmlDataSource, Entity, Scene, Viewer } from 'resium';
 
 import { fetchTLE, computePosition, computeOrbit, computeOrbitInertial } from './utils';
+import { scrapeCollisions, mapCollisionDataToObjects } from './scrape';
 
 import { satellites } from '../data/czml';
 
-import satData from '../data/sats.json';
-// import satData from '../data/collision.json';
+// import satData from '../data/sats.json';
+import satData from '../data/collision.json';
 
 function App() {
 	// const [satPositionData, setSatPositionData] = useState(null);
+	const [collisionData, setCollisionData] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
 
 	const evt = new cesium.Event();
@@ -36,7 +29,15 @@ function App() {
 		isMounted = true;
 
 		if (isMounted) {
-			setOrbits();
+			scrapeCollisions()
+				.then((collisionData) => {
+					var collisionObjects = mapCollisionDataToObjects(collisionData);
+					return collisionObjects;
+				})
+				.then((collisionObjects) => {
+					setCollisionData(collisionObjects);
+					// setOrbits();
+				});
 		}
 
 		return () => {
@@ -44,14 +45,34 @@ function App() {
 		};
 	}, []);
 
+	useEffect(() => {
+		// testMap();
+		setOrbits();
+	}, [collisionData]);
+
+	const testMap = () => {
+		// var satIDs = collisionData.map((idx) => idx.NORAD_CAT_ID_1);
+		var satIDs = collisionData.map((idx) => ({
+			one: idx.NORAD_CAT_ID_1,
+			two: idx.NORAD_CAT_ID_2,
+		}));
+		console.log(satIDs);
+	};
+
 	const setOrbits = async () => {
 		var orbitsArr = [];
 		var tleArr = [];
-		var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
+		// var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
+		var satIDs = collisionData.map((idx) => ({
+			one: idx.NORAD_CAT_ID_1,
+			two: idx.NORAD_CAT_ID_2,
+		}));
 
 		satIDs.forEach(async (id) => {
-			let promise = fetchTLE(id);
-			tleArr.push(promise);
+			let promise1 = fetchTLE(id.one);
+			let promise2 = fetchTLE(id.two);
+			tleArr.push(promise1);
+			tleArr.push(promise2);
 		});
 
 		Promise.all(tleArr)
@@ -92,7 +113,7 @@ function App() {
 	const setICRF = () => {
 		if (sceneRef.current && sceneRef.current.cesiumElement) {
 			// viewerRef.current.cesiumElement.camera.flyHome(0);
-			sceneRef.current.cesiumElement.postUpdate.addEventListener(icrf);
+			// sceneRef.current.cesiumElement.postUpdate.addEventListener(icrf);
 		}
 	};
 
