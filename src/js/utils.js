@@ -84,7 +84,7 @@ export const computeOrbitInertial = (tleLine1, tleLine2) => {
 	const orbitalPeriod = getOrbitalPeriod(satrec);
 
 	const totalSeconds = 700000;
-	const timeStepInSeconds = 20;
+	const timeStepInSeconds = 100;
 	const start = JulianDate.fromDate(new Date());
 
 	const sampledPositionInertial = new SampledPositionProperty(ReferenceFrame.INERTIAL);

@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import * as cesium from 'cesium';
 
-import { CameraFlyHome, CzmlDataSource, Entity, Viewer } from 'resium';
+import {
+	Camera,
+	CameraFlyHome,
+	CameraFlyTo,
+	CameraLookAt,
+	CzmlDataSource,
+	Entity,
+	Scene,
+	Viewer,
+} from 'resium';
 
 import { fetchTLE, computePosition, computeOrbit, computeOrbitInertial } from './utils';
 
@@ -12,9 +21,14 @@ import satData from '../data/sats.json';
 // import satData from '../data/collision.json';
 
 function App() {
-	const [satPositionData, setSatPositionData] = useState(null);
+	// const [satPositionData, setSatPositionData] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
-	// const [selected, setSelected] = useState(false);
+
+	const evt = new cesium.Event();
+
+	const viewerRef = useRef(null);
+	const sceneRef = useRef(null);
+	const cameraRef = useRef(null);
 
 	let isMounted = false;
 
@@ -75,11 +89,35 @@ function App() {
 		setPositionsOverTime(orbits);
 	};
 
+	const setICRF = () => {
+		if (sceneRef.current && sceneRef.current.cesiumElement) {
+			// viewerRef.current.cesiumElement.camera.flyHome(0);
+			sceneRef.current.cesiumElement.postUpdate.addEventListener(icrf);
+		}
+	};
+
+	const icrf = (scene, time) => {
+		if (scene.mode !== cesium.SceneMode.SCENE3D) {
+			return;
+		}
+
+		const icrfToFixed = cesium.Transforms.computeIcrfToFixedMatrix(time);
+
+		if (cesium.defined(icrfToFixed)) {
+			var offset = cesium.Cartesian3.clone(
+				sceneRef.current.cesiumElement.camera.position
+			);
+			var transform = cesium.Matrix4.fromRotationTranslation(icrfToFixed);
+
+			sceneRef.current.cesiumElement.camera.lookAtTransform(transform, offset);
+		}
+	};
+
 	return (
 		<>
 			{positionsOverTime !== null ? (
-				<Viewer full>
-					<CameraFlyHome once={false} />
+				<Viewer full ref={viewerRef}>
+					<Scene onPostRender={() => setICRF()} ref={sceneRef} />
 					{positionsOverTime.map((orbit, idx) => (
 						<Entity
 							key={idx}
@@ -87,8 +125,9 @@ function App() {
 							path={
 								orbit.selected
 									? {
-											leadTime: (orbit.orbitalPeriod * 65) / 2 + 5,
-											trailTime: (orbit.orbitalPeriod * 65) / 2 + 5,
+											leadTime: orbit.orbitalPeriod * 65,
+											trailTime: 0,
+											// trailTime: (orbit.orbitalPeriod * 65) / 2 + 5,
 											material: cesium.Color.AQUA,
 											resolution: 600,
 											width: 1,
@@ -105,10 +144,19 @@ function App() {
 							onClick={() => toggleSelected(idx)}
 						/>
 					))}
-					{/* <CzmlDataSource data={satellites} /> */}
 				</Viewer>
 			) : (
-				<></>
+				<>
+					<h1
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+						}}
+					>
+						Loading Satellites...
+					</h1>
+				</>
 			)}
 		</>
 	);
