@@ -1,0 +1,28 @@
+.toolbar-dropdown {
+	background-color: #303336;
+	color: #fff;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	margin: 2px 3px;
+}
+
+.dropdown-heading {
+	text-align: center;
+}
+
+.collision-container:nth-child(even) {
+}
+
+.collision-row {
+	padding: 0.3rem;
+	cursor: pointer;
+}
+
+.collision-row:nth-child(even) {
+	background-color: #595c5f;
+}
+
+.collision-row > li {
+	list-style: none;
+}

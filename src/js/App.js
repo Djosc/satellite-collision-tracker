@@ -5,8 +5,15 @@ import * as cesium from 'cesium';
 
 import { CzmlDataSource, Entity, Scene, Viewer } from 'resium';
 
-import { fetchTLE, computePosition, computeOrbit, computeOrbitInertial } from './utils';
-import { scrapeCollisions, mapCollisionDataToObjects } from './scrape';
+import {
+	fetchTLE,
+	computePosition,
+	computeOrbit,
+	computeOrbitInertial,
+	mapCollisionDataToObjects,
+	setOrbits,
+} from './utils';
+import { scrapeCollisions } from './scrape';
 
 import { satellites } from '../data/czml';
 
@@ -15,7 +22,7 @@ import satData from '../data/collision.json';
 
 function App() {
 	// const [satPositionData, setSatPositionData] = useState(null);
-	const [collisionData, setCollisionData] = useState(null);
+	const [collisionObjectsArr, setCollisionObjectsArr] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
 
 	const evt = new cesium.Event();
@@ -32,13 +39,14 @@ function App() {
 		if (isMounted) {
 			scrapeCollisions()
 				.then((collisionData) => {
-					var collisionObjects = mapCollisionDataToObjects(collisionData);
+					const collisionObjects = mapCollisionDataToObjects(collisionData);
 					return collisionObjects;
 				})
 				.then((collisionObjects) => {
-					setCollisionData(collisionObjects);
+					setCollisionObjectsArr(collisionObjects);
 					// setOrbits();
-				});
+				})
+				.then((orbitData) => {});
 		}
 
 		return () => {
@@ -47,73 +55,25 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		if (collisionData !== null) setOrbits();
+		if (collisionObjectsArr !== null) {
+			setOrbits(collisionObjectsArr).then((orbitData) => {
+				setPositionsOverTime(orbitData);
+			});
+		}
 
 		return () => {};
-	}, [collisionData]);
-
-	// useEffect(() => {
-	// 	setICRF();
-
-	// 	return () => {};
-	// }, [positionsOverTime]);
-
-	const testMap = () => {
-		// var satIDs = collisionData.map((idx) => idx.NORAD_CAT_ID_1);
-		var satIDs = collisionData.map((idx) => ({
-			one: idx.NORAD_CAT_ID_1,
-			two: idx.NORAD_CAT_ID_2,
-		}));
-		console.log(satIDs);
-	};
-
-	const setOrbits = async () => {
-		var orbitsArr = [];
-		var tleArr = [];
-		// var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
-		var satIDs = collisionData.map((idx) => ({
-			one: idx.NORAD_CAT_ID_1,
-			two: idx.NORAD_CAT_ID_2,
-		}));
-
-		satIDs.forEach(async (id) => {
-			let promise1 = fetchTLE(id.one);
-			let promise2 = fetchTLE(id.two);
-			tleArr.push(promise1);
-			tleArr.push(promise2);
-		});
-
-		Promise.all(tleArr)
-			.then((results) => {
-				results.forEach((tle) => {
-					var [tleLine0, tleLine1, tleLine2] = tle.split('\n');
-					tleLine0 = tleLine0.trim();
-
-					// var orbitData = computeOrbit(tleLine1, tleLine2);
-					var orbitData = computeOrbitInertial(tleLine1, tleLine2);
-
-					orbitsArr.push({
-						orbit: orbitData[0],
-						name: tleLine0,
-						orbitalPeriod: orbitData[1],
-						selected: false,
-					});
-				});
-				// console.log(orbitsArr);
-				return orbitsArr;
-			})
-			.then((orbits) => {
-				setPositionsOverTime(orbits);
-			});
-	};
+	}, [collisionObjectsArr]);
 
 	const toggleSelected = (idx) => {
 		let orbits = [...positionsOverTime];
 		let newOrbit = { ...orbits[idx] };
+		let newOrbit2 = { ...orbits[idx + 1] };
 
 		newOrbit.selected = !newOrbit.selected;
+		newOrbit2.selected = !newOrbit2.selected;
 
 		orbits[idx] = newOrbit;
+		orbits[idx + 1] = newOrbit2;
 
 		setPositionsOverTime(orbits);
 	};
@@ -160,7 +120,11 @@ function App() {
 					navigationHelpButton={false}
 					shouldAnimate={false}
 				>
-					<CustomToolbar setICRF={setICRF} />
+					<CustomToolbar
+						setICRF={setICRF}
+						collisionObjects={collisionObjectsArr}
+						toggleSelected={toggleSelected}
+					/>
 					<Scene ref={sceneRef} />
 					{positionsOverTime.map((orbit, idx) => (
 						<Entity
