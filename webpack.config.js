@@ -67,6 +67,7 @@ module.exports = {
 		new DotEnv(),
 		new HtmlWebpackPlugin({
 			template: 'index.html',
+			inject: false,
 		}),
 		// Copy Cesium Assets, Widgets, and Workers to a static directory
 		new CopyWebpackPlugin({
