@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import CustomToolbar from './Components/CustomToolbar';
 
 import * as cesium from 'cesium';
 
@@ -46,9 +47,16 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		// testMap();
-		setOrbits();
+		if (collisionData !== null) setOrbits();
+
+		return () => {};
 	}, [collisionData]);
+
+	// useEffect(() => {
+	// 	setICRF();
+
+	// 	return () => {};
+	// }, [positionsOverTime]);
 
 	const testMap = () => {
 		// var satIDs = collisionData.map((idx) => idx.NORAD_CAT_ID_1);
@@ -112,8 +120,16 @@ function App() {
 
 	const setICRF = () => {
 		if (sceneRef.current && sceneRef.current.cesiumElement) {
-			// viewerRef.current.cesiumElement.camera.flyHome(0);
-			// sceneRef.current.cesiumElement.postUpdate.addEventListener(icrf);
+			let sceneUpdate = sceneRef.current.cesiumElement.postUpdate;
+			console.log(sceneRef);
+
+			if (sceneUpdate._listeners[1] && sceneUpdate._listeners[1].name === 'icrf') {
+				sceneUpdate.removeEventListener(icrf);
+				console.log('if ', sceneUpdate._listeners);
+			} else {
+				sceneUpdate.addEventListener(icrf);
+				console.log('else ', sceneUpdate._listeners);
+			}
 		}
 	};
 
@@ -137,8 +153,15 @@ function App() {
 	return (
 		<>
 			{positionsOverTime !== null ? (
-				<Viewer full ref={viewerRef}>
-					<Scene onPostRender={() => setICRF()} ref={sceneRef} />
+				<Viewer
+					full
+					ref={viewerRef}
+					geocoder={false}
+					navigationHelpButton={false}
+					shouldAnimate={false}
+				>
+					<CustomToolbar setICRF={setICRF} />
+					<Scene ref={sceneRef} />
 					{positionsOverTime.map((orbit, idx) => (
 						<Entity
 							key={idx}
@@ -161,7 +184,7 @@ function App() {
 								scale: 0.5,
 								pixelOffset: new cesium.Cartesian2(-25, 17),
 							}}
-							point={{ pixelSize: 5, color: cesium.Color.RED }}
+							point={{ pixelSize: 7, color: cesium.Color.RED }}
 							onClick={() => toggleSelected(idx)}
 						/>
 					))}
