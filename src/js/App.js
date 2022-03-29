@@ -146,7 +146,7 @@ function App() {
 							path={
 								orbit.selected
 									? {
-											leadTime: orbit.orbitalPeriod * 65,
+											leadTime: orbit.orbitalPeriod * 60,
 											trailTime: 0,
 											// trailTime: (orbit.orbitalPeriod * 65) / 2 + 5,
 											material: cesium.Color.AQUA,
