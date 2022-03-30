@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import SatelliteList from './SatelliteList';
 
-const CustomToolbar = ({ setICRF, collisionObjects, toggleSelected }) => {
+const CustomToolbar = ({
+	setICRF,
+	collisionObjects,
+	toggleSelected,
+	goToCollisionTime,
+}) => {
 	const [showSatList, setShowSatList] = useState(false);
 
 	return (
@@ -20,6 +25,7 @@ const CustomToolbar = ({ setICRF, collisionObjects, toggleSelected }) => {
 					<SatelliteList
 						collisionObjects={collisionObjects}
 						toggleSelected={toggleSelected}
+						goToCollisionTime={goToCollisionTime}
 					/>
 				) : (
 					<></>

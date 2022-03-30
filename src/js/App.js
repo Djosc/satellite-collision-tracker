@@ -25,11 +25,8 @@ function App() {
 	const [collisionObjectsArr, setCollisionObjectsArr] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
 
-	const evt = new cesium.Event();
-
 	const viewerRef = useRef(null);
 	const sceneRef = useRef(null);
-	const cameraRef = useRef(null);
 
 	let isMounted = false;
 
@@ -44,9 +41,7 @@ function App() {
 				})
 				.then((collisionObjects) => {
 					setCollisionObjectsArr(collisionObjects);
-					// setOrbits();
-				})
-				.then((orbitData) => {});
+				});
 		}
 
 		return () => {
@@ -64,7 +59,30 @@ function App() {
 		return () => {};
 	}, [collisionObjectsArr]);
 
+	const goToCollisionTime = (collisionTime, satName1) => {
+		let start = new Date(collisionTime);
+		let isoDate = new Date(
+			start.getTime() - start.getTimezoneOffset() * 60000
+		).toISOString();
+
+		let targetTime = cesium.JulianDate.fromIso8601(isoDate);
+		let endTime = cesium.JulianDate.addDays(targetTime, 2, new cesium.JulianDate());
+		let tenMinuteOffset = cesium.JulianDate.addSeconds(
+			targetTime,
+			-300,
+			new cesium.JulianDate()
+		);
+
+		let clock = viewerRef.current.cesiumElement.clock;
+		let camera = viewerRef.current.cesiumElement.camera;
+
+		clock._currentTime = tenMinuteOffset;
+		viewerRef.current.cesiumElement.timeline.zoomTo(tenMinuteOffset, endTime);
+	};
+
 	const toggleSelected = (idx) => {
+		// this is an ugly way of doing it, but it toggles both orbits for
+		// one collision event
 		let orbits = [...positionsOverTime];
 		let newOrbit = { ...orbits[idx] };
 		let newOrbit2 = { ...orbits[idx + 1] };
@@ -124,6 +142,7 @@ function App() {
 						setICRF={setICRF}
 						collisionObjects={collisionObjectsArr}
 						toggleSelected={toggleSelected}
+						goToCollisionTime={goToCollisionTime}
 					/>
 					<Scene ref={sceneRef} />
 					{positionsOverTime.map((orbit, idx) => (
@@ -149,7 +168,6 @@ function App() {
 								pixelOffset: new cesium.Cartesian2(-25, 17),
 							}}
 							point={{ pixelSize: 7, color: cesium.Color.RED }}
-							onClick={() => toggleSelected(idx)}
 						/>
 					))}
 				</Viewer>
