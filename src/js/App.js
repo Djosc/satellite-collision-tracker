@@ -78,6 +78,7 @@ function App() {
 
 		clock._currentTime = fiveMinuteOffset;
 		viewerRef.current.cesiumElement.timeline.zoomTo(fiveMinuteOffset, endTime);
+		viewer.clockViewModel.shouldAnimate = false;
 
 		const entities = viewerRef.current.cesiumElement.entities._entities._array;
 		const matchedEntities = entities.filter(
