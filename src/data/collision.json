@@ -1,8 +1,62 @@
 [
 	{
-		"NORAD_CAT_ID": 45101
+		"NORAD_CAT_ID": "03669"
 	},
 	{
-		"NORAD_CAT_ID": 46166
+		"NORAD_CAT_ID": 31017
+	},
+	{
+		"NORAD_CAT_ID": 10514
+	},
+	{
+		"NORAD_CAT_ID": 30940
+	},
+	{
+		"NORAD_CAT_ID": 48429
+	},
+	{
+		"NORAD_CAT_ID": 48481
+	},
+	{
+		"NORAD_CAT_ID": 45740
+	},
+	{
+		"NORAD_CAT_ID": 48402
+	},
+	{
+		"NORAD_CAT_ID": 46478
+	},
+	{
+		"NORAD_CAT_ID": 31563
+	},
+	{
+		"NORAD_CAT_ID": 25489
+	},
+	{
+		"NORAD_CAT_ID": 13826
+	},
+	{
+		"NORAD_CAT_ID": 46692
+	},
+	{
+		"NORAD_CAT_ID": 47754
+	},
+	{
+		"NORAD_CAT_ID": 44751
+	},
+	{
+		"NORAD_CAT_ID": 48456
+	},
+	{
+		"NORAD_CAT_ID": 48393
+	},
+	{
+		"NORAD_CAT_ID": 41442
+	},
+	{
+		"NORAD_CAT_ID": 46080
+	},
+	{
+		"NORAD_CAT_ID": 41798
 	}
 ]

@@ -1,34 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
+import CustomToolbar from './Components/CustomToolbar';
 
 import * as cesium from 'cesium';
 
-import {
-	Camera,
-	CameraFlyHome,
-	CameraFlyTo,
-	CameraLookAt,
-	CzmlDataSource,
-	Entity,
-	Scene,
-	Viewer,
-} from 'resium';
+import { CzmlDataSource, Entity, Scene, Viewer } from 'resium';
 
-import { fetchTLE, computePosition, computeOrbit, computeOrbitInertial } from './utils';
+import {
+	fetchTLE,
+	computePosition,
+	computeOrbit,
+	computeOrbitInertial,
+	mapCollisionDataToObjects,
+	setOrbits,
+} from './utils';
+import { scrapeCollisions } from './scrape';
 
 import { satellites } from '../data/czml';
 
-import satData from '../data/sats.json';
-// import satData from '../data/collision.json';
+// import satData from '../data/sats.json';
+import satData from '../data/collision.json';
 
 function App() {
 	// const [satPositionData, setSatPositionData] = useState(null);
+	const [collisionObjectsArr, setCollisionObjectsArr] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
-
-	const evt = new cesium.Event();
 
 	const viewerRef = useRef(null);
 	const sceneRef = useRef(null);
-	const cameraRef = useRef(null);
 
 	let isMounted = false;
 
@@ -36,7 +34,14 @@ function App() {
 		isMounted = true;
 
 		if (isMounted) {
-			setOrbits();
+			scrapeCollisions()
+				.then((collisionData) => {
+					const collisionObjects = mapCollisionDataToObjects(collisionData);
+					return collisionObjects;
+				})
+				.then((collisionObjects) => {
+					setCollisionObjectsArr(collisionObjects);
+				});
 		}
 
 		return () => {
@@ -44,55 +49,90 @@ function App() {
 		};
 	}, []);
 
-	const setOrbits = async () => {
-		var orbitsArr = [];
-		var tleArr = [];
-		var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
+	useEffect(() => {
+		if (collisionObjectsArr !== null) {
+			setOrbits(collisionObjectsArr).then((orbitData) => {
+				setPositionsOverTime(orbitData);
+			});
+		}
 
-		satIDs.forEach(async (id) => {
-			let promise = fetchTLE(id);
-			tleArr.push(promise);
+		return () => {};
+	}, [collisionObjectsArr]);
+
+	const goToCollisionTime = (collisionTime, satName1, satName2) => {
+		const start = new Date(collisionTime);
+		const isoDate = new Date(
+			start.getTime() - start.getTimezoneOffset() * 60000
+		).toISOString();
+
+		const targetTime = cesium.JulianDate.fromIso8601(isoDate);
+		const endTime = cesium.JulianDate.addDays(targetTime, 2, new cesium.JulianDate());
+		const fiveMinuteOffset = cesium.JulianDate.addSeconds(
+			targetTime,
+			-300,
+			new cesium.JulianDate()
+		);
+
+		const clock = viewerRef.current.cesiumElement.clock;
+		const viewer = viewerRef.current.cesiumElement;
+
+		clock._currentTime = fiveMinuteOffset;
+		viewerRef.current.cesiumElement.timeline.zoomTo(fiveMinuteOffset, endTime);
+		viewer.clockViewModel.shouldAnimate = false;
+
+		const entities = viewerRef.current.cesiumElement.entities._entities._array;
+		const matchedEntities = entities.filter(
+			(idx) => satName1.includes(idx._name) || satName2.includes(idx._name)
+		);
+
+		console.log(matchedEntities);
+
+		const targetCart3Val = matchedEntities[0]._position.getValue(
+			targetTime,
+			new cesium.Cartesian3()
+		);
+
+		const cartoVal = new cesium.Cartographic.fromCartesian(targetCart3Val);
+
+		viewer.camera.flyTo({
+			destination: new cesium.Cartesian3.fromDegrees(
+				cesium.Math.toDegrees(cartoVal.longitude),
+				cesium.Math.toDegrees(cartoVal.latitude),
+				cartoVal.height * 10
+			),
 		});
 
-		Promise.all(tleArr)
-			.then((results) => {
-				results.forEach((tle) => {
-					var [tleLine0, tleLine1, tleLine2] = tle.split('\n');
-					tleLine0 = tleLine0.trim();
-
-					// var orbitData = computeOrbit(tleLine1, tleLine2);
-					var orbitData = computeOrbitInertial(tleLine1, tleLine2);
-
-					orbitsArr.push({
-						orbit: orbitData[0],
-						name: tleLine0,
-						orbitalPeriod: orbitData[1],
-						selected: false,
-					});
-				});
-				// console.log(orbitsArr);
-				return orbitsArr;
-			})
-			.then((orbits) => {
-				setPositionsOverTime(orbits);
-			});
+		viewer.selectedEntity = matchedEntities[0];
 	};
 
 	const toggleSelected = (idx) => {
+		// this is an ugly way of doing it, but it toggles both orbits for
+		// one collision event
 		let orbits = [...positionsOverTime];
 		let newOrbit = { ...orbits[idx] };
+		let newOrbit2 = { ...orbits[idx + 1] };
 
 		newOrbit.selected = !newOrbit.selected;
+		newOrbit2.selected = !newOrbit2.selected;
 
 		orbits[idx] = newOrbit;
+		orbits[idx + 1] = newOrbit2;
 
 		setPositionsOverTime(orbits);
 	};
 
 	const setICRF = () => {
 		if (sceneRef.current && sceneRef.current.cesiumElement) {
-			// viewerRef.current.cesiumElement.camera.flyHome(0);
-			sceneRef.current.cesiumElement.postUpdate.addEventListener(icrf);
+			let sceneUpdate = sceneRef.current.cesiumElement.postUpdate;
+			console.log(sceneRef);
+
+			if (sceneUpdate._listeners[1] && sceneUpdate._listeners[1].name === 'icrf') {
+				sceneUpdate.removeEventListener(icrf);
+				console.log('if ', sceneUpdate._listeners);
+			} else {
+				sceneUpdate.addEventListener(icrf);
+				console.log('else ', sceneUpdate._listeners);
+			}
 		}
 	};
 
@@ -113,19 +153,37 @@ function App() {
 		}
 	};
 
+	const logPosition = () => {
+		console.log(viewerRef.current.cesiumElement.camera.position);
+	};
+
 	return (
 		<>
 			{positionsOverTime !== null ? (
-				<Viewer full ref={viewerRef}>
-					<Scene onPostRender={() => setICRF()} ref={sceneRef} />
+				<Viewer
+					full
+					ref={viewerRef}
+					geocoder={false}
+					navigationHelpButton={false}
+					shouldAnimate={false}
+					onClick={() => logPosition()}
+				>
+					<CustomToolbar
+						setICRF={setICRF}
+						collisionObjects={collisionObjectsArr}
+						toggleSelected={toggleSelected}
+						goToCollisionTime={goToCollisionTime}
+					/>
+					<Scene ref={sceneRef} />
 					{positionsOverTime.map((orbit, idx) => (
 						<Entity
 							key={idx}
+							// entityCollection={satCollection}
 							position={orbit.orbit}
 							path={
 								orbit.selected
 									? {
-											leadTime: orbit.orbitalPeriod * 65,
+											leadTime: orbit.orbitalPeriod * 60,
 											trailTime: 0,
 											// trailTime: (orbit.orbitalPeriod * 65) / 2 + 5,
 											material: cesium.Color.AQUA,
@@ -140,8 +198,7 @@ function App() {
 								scale: 0.5,
 								pixelOffset: new cesium.Cartesian2(-25, 17),
 							}}
-							point={{ pixelSize: 5, color: cesium.Color.RED }}
-							onClick={() => toggleSelected(idx)}
+							point={{ pixelSize: 7, color: cesium.Color.RED }}
 						/>
 					))}
 				</Viewer>
