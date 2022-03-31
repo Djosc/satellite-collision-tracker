@@ -59,25 +59,49 @@ function App() {
 		return () => {};
 	}, [collisionObjectsArr]);
 
-	const goToCollisionTime = (collisionTime, satName1) => {
-		let start = new Date(collisionTime);
-		let isoDate = new Date(
+	const goToCollisionTime = (collisionTime, satName1, satName2) => {
+		const start = new Date(collisionTime);
+		const isoDate = new Date(
 			start.getTime() - start.getTimezoneOffset() * 60000
 		).toISOString();
 
-		let targetTime = cesium.JulianDate.fromIso8601(isoDate);
-		let endTime = cesium.JulianDate.addDays(targetTime, 2, new cesium.JulianDate());
-		let tenMinuteOffset = cesium.JulianDate.addSeconds(
+		const targetTime = cesium.JulianDate.fromIso8601(isoDate);
+		const endTime = cesium.JulianDate.addDays(targetTime, 2, new cesium.JulianDate());
+		const fiveMinuteOffset = cesium.JulianDate.addSeconds(
 			targetTime,
 			-300,
 			new cesium.JulianDate()
 		);
 
-		let clock = viewerRef.current.cesiumElement.clock;
-		let camera = viewerRef.current.cesiumElement.camera;
+		const clock = viewerRef.current.cesiumElement.clock;
+		const viewer = viewerRef.current.cesiumElement;
 
-		clock._currentTime = tenMinuteOffset;
-		viewerRef.current.cesiumElement.timeline.zoomTo(tenMinuteOffset, endTime);
+		clock._currentTime = fiveMinuteOffset;
+		viewerRef.current.cesiumElement.timeline.zoomTo(fiveMinuteOffset, endTime);
+
+		const entities = viewerRef.current.cesiumElement.entities._entities._array;
+		const matchedEntities = entities.filter(
+			(idx) => satName1.includes(idx._name) || satName2.includes(idx._name)
+		);
+
+		console.log(matchedEntities);
+
+		const targetCart3Val = matchedEntities[0]._position.getValue(
+			targetTime,
+			new cesium.Cartesian3()
+		);
+
+		const cartoVal = new cesium.Cartographic.fromCartesian(targetCart3Val);
+
+		viewer.camera.flyTo({
+			destination: new cesium.Cartesian3.fromDegrees(
+				cesium.Math.toDegrees(cartoVal.longitude),
+				cesium.Math.toDegrees(cartoVal.latitude),
+				cartoVal.height * 10
+			),
+		});
+
+		viewer.selectedEntity = matchedEntities[0];
 	};
 
 	const toggleSelected = (idx) => {
@@ -128,6 +152,10 @@ function App() {
 		}
 	};
 
+	const logPosition = () => {
+		console.log(viewerRef.current.cesiumElement.camera.position);
+	};
+
 	return (
 		<>
 			{positionsOverTime !== null ? (
@@ -137,6 +165,7 @@ function App() {
 					geocoder={false}
 					navigationHelpButton={false}
 					shouldAnimate={false}
+					onClick={() => logPosition()}
 				>
 					<CustomToolbar
 						setICRF={setICRF}
@@ -148,6 +177,7 @@ function App() {
 					{positionsOverTime.map((orbit, idx) => (
 						<Entity
 							key={idx}
+							// entityCollection={satCollection}
 							position={orbit.orbit}
 							path={
 								orbit.selected

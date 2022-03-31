@@ -46,7 +46,7 @@ const SatelliteList = ({ collisionObjects, toggleSelected, goToCollisionTime }) 
 						<div className="btn-wrap">
 							<button
 								className="btn"
-								onClick={() => goToCollisionTime(obj.START_UTC, obj.NAME_1)}
+								onClick={() => goToCollisionTime(obj.START_UTC, obj.NAME_1, obj.NAME_2)}
 							>
 								Collision Time
 							</button>
