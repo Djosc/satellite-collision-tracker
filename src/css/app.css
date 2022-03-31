@@ -5,7 +5,7 @@
 	display: flex;
 	flex-direction: column;
 	margin: 2px 3px;
-	opacity: 0.9;
+	opacity: 0.95;
 }
 
 .dropdown-heading {
@@ -23,29 +23,19 @@
 	width: min-content;
 }
 
-.collision-container:nth-child(even) {
-}
-
-.collision-row {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-	align-items: center;
-	justify-content: center;
+thead,
+th {
+	font-size: 13px;
 	padding: 0.3rem;
-	padding-left: 0.7rem;
-	list-style: none;
-	font-size: 11px;
 }
 
-.collision-row:nth-child(odd) {
-	background-color: #595c5f;
+tr:nth-child(odd) {
+	background-color: #474b4e;
 }
 
-.collision-row > li {
-	list-style: none;
-}
-
-.collision-name-wrap {
+td {
+	font-size: 13;
+	padding: 0.3rem;
 }
 
 .btn-wrap {
@@ -54,4 +44,5 @@
 
 .btn {
 	cursor: pointer;
+	margin: 0.3rem;
 }
