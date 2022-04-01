@@ -120,10 +120,10 @@ const getOrbitalPeriod = (satrec) => {
 };
 
 export const setOrbits = async (collisionObjects) => {
-	var orbitsArr = [];
-	var tleArr = [];
+	let orbitsArr = [];
+	let tleArr = [];
 	// var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
-	var satIDs = collisionObjects.map((idx) => ({
+	let satIDs = collisionObjects.map((idx) => ({
 		one: idx.NORAD_CAT_ID_1,
 		two: idx.NORAD_CAT_ID_2,
 	}));
@@ -137,11 +137,11 @@ export const setOrbits = async (collisionObjects) => {
 
 	const orbits = await Promise.all(tleArr).then((results) => {
 		results.forEach((tle) => {
-			var [tleLine0, tleLine1, tleLine2] = tle.split('\n');
+			let [tleLine0, tleLine1, tleLine2] = tle.split('\n');
 			tleLine0 = tleLine0.trim();
 
 			// var orbitData = computeOrbit(tleLine1, tleLine2);
-			var orbitData = computeOrbitInertial(tleLine1, tleLine2);
+			let orbitData = computeOrbitInertial(tleLine1, tleLine2);
 
 			orbitsArr.push({
 				orbit: orbitData[0],
@@ -158,7 +158,7 @@ export const setOrbits = async (collisionObjects) => {
 };
 
 export const mapCollisionDataToObjects = async (collisionData) => {
-	var collisionsArr = [];
+	let collisionsArr = [];
 
 	for (let i = 0, j = 0; i < collisionData.length; i += 14, j++) {
 		let newArr = collisionData.slice(i, i + 14);

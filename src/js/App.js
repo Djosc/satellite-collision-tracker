@@ -105,20 +105,32 @@ function App() {
 		viewer.selectedEntity = matchedEntities[0];
 	};
 
-	const toggleSelected = (idx) => {
+	const toggleOrbitsOn = (satName1, satName2) => {
 		// this is an ugly way of doing it, but it toggles both orbits for
 		// one collision event
 		let orbits = [...positionsOverTime];
-		let newOrbit = { ...orbits[idx] };
-		let newOrbit2 = { ...orbits[idx + 1] };
 
-		newOrbit.selected = !newOrbit.selected;
-		newOrbit2.selected = !newOrbit2.selected;
+		let newOrbitIDX = orbits.findIndex((idx) => satName1.includes(idx.name));
+		let newOrbitIDX2 = orbits.findIndex((idx) => satName2.includes(idx.name));
 
-		orbits[idx] = newOrbit;
-		orbits[idx + 1] = newOrbit2;
+		let newOrbit = { ...orbits[newOrbitIDX] };
+		let newOrbit2 = { ...orbits[newOrbitIDX2] };
+
+		newOrbit.selected = true;
+		newOrbit2.selected = true;
+
+		orbits[newOrbitIDX] = newOrbit;
+		orbits[newOrbitIDX2] = newOrbit2;
 
 		setPositionsOverTime(orbits);
+	};
+
+	const clearOrbits = () => {
+		let orbits = [...positionsOverTime];
+
+		let newOrbitArr = orbits.forEach((idx) => (idx.selected = false));
+
+		setPositionsOverTime(newOrbitArr);
 	};
 
 	const setICRF = () => {
@@ -171,7 +183,8 @@ function App() {
 					<CustomToolbar
 						setICRF={setICRF}
 						collisionObjects={collisionObjectsArr}
-						toggleSelected={toggleSelected}
+						toggleOrbitsOn={toggleOrbitsOn}
+						clearOrbits={clearOrbits}
 						goToCollisionTime={goToCollisionTime}
 					/>
 					<Scene ref={sceneRef} />
