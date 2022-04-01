@@ -1,20 +1,11 @@
 import React from 'react';
 
-const SatelliteList = ({ collisionObjects, toggleSelected, goToCollisionTime }) => {
-	const handleClick = (idx) => {
-		toggleSelected(idx * 2);
-	};
-
-	const logTime = (startTime) => {
-		let start = new Date(startTime);
-		let isoDate = new Date(
-			start.getTime() - start.getTimezoneOffset() * 60000
-		).toISOString();
-		console.log(startTime);
-		console.log(start);
-		console.log(isoDate);
-	};
-
+const SatelliteList = ({
+	collisionObjects,
+	toggleOrbitsOn,
+	clearOrbits,
+	goToCollisionTime,
+}) => {
 	return (
 		<div className="toolbar-dropdown">
 			<h3 className="dropdown-heading">Collision Data</h3>
@@ -45,13 +36,20 @@ const SatelliteList = ({ collisionObjects, toggleSelected, goToCollisionTime }) 
 							<td className="">
 								<button
 									className="btn"
-									onClick={() => goToCollisionTime(obj.START_UTC, obj.NAME_1, obj.NAME_2)}
+									onClick={() => {
+										goToCollisionTime(obj.START_UTC, obj.NAME_1, obj.NAME_2);
+										clearOrbits();
+										toggleOrbitsOn(obj.NAME_1, obj.NAME_2);
+									}}
 								>
 									View
 								</button>
-								<button className="btn" onClick={() => toggleSelected(idx)}>
+								{/* <button
+									className="btn"
+									onClick={() => toggleOrbits(obj.NAME_1, obj.NAME_2)}
+								>
 									Orbits
-								</button>
+								</button> */}
 							</td>
 						</tr>
 					))}

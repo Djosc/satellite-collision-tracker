@@ -4,7 +4,8 @@ import SatelliteList from './SatelliteList';
 const CustomToolbar = ({
 	setICRF,
 	collisionObjects,
-	toggleSelected,
+	toggleOrbitsOn,
+	clearOrbits,
 	goToCollisionTime,
 }) => {
 	const [showSatList, setShowSatList] = useState(false);
@@ -24,7 +25,8 @@ const CustomToolbar = ({
 				{showSatList ? (
 					<SatelliteList
 						collisionObjects={collisionObjects}
-						toggleSelected={toggleSelected}
+						toggleOrbitsOn={toggleOrbitsOn}
+						clearOrbits={clearOrbits}
 						goToCollisionTime={goToCollisionTime}
 					/>
 				) : (
