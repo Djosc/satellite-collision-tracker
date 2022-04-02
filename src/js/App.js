@@ -3,7 +3,7 @@ import CustomToolbar from './Components/CustomToolbar';
 
 import * as cesium from 'cesium';
 
-import { CzmlDataSource, Entity, Scene, Viewer } from 'resium';
+import { CzmlDataSource, Entity, Globe, ImageryLayer, Scene, Sun, Viewer } from 'resium';
 
 import {
 	fetchTLE,
@@ -12,6 +12,7 @@ import {
 	computeOrbitInertial,
 	mapCollisionDataToObjects,
 	setOrbits,
+	getDescription,
 } from './utils';
 import { scrapeCollisions } from './scrape';
 
@@ -19,6 +20,11 @@ import { satellites } from '../data/czml';
 
 // import satData from '../data/sats.json';
 import satData from '../data/collision.json';
+
+// Place these here so resium read-only props aren't changed
+// (it causes the viewer to re-initialize)
+const imageryProviderDay = new cesium.IonImageryProvider({ assetId: 3845 });
+const imageryProviderNight = new cesium.IonImageryProvider({ assetId: 3812 });
 
 function App() {
 	// const [satPositionData, setSatPositionData] = useState(null);
@@ -85,8 +91,6 @@ function App() {
 			(idx) => satName1.includes(idx._name) || satName2.includes(idx._name)
 		);
 
-		console.log(matchedEntities);
-
 		const targetCart3Val = matchedEntities[0]._position.getValue(
 			targetTime,
 			new cesium.Cartesian3()
@@ -133,13 +137,29 @@ function App() {
 		setPositionsOverTime(newOrbitArr);
 	};
 
+	// const setDescription = (satName1, satName2) => {
+	// 	const viewer = viewerRef.current.cesiumElement;
+
+	// 	const entities = viewer.entities._entities._array;
+	// 	const matchedEntity = entities.filter((idx) => satName1.includes(idx._name));
+
+	// 	console.log(matchedEntities);
+
+	// 	const targetCart3Val = matchedEntities[0]._position.getValue(
+	// 		targetTime,
+	// 		new cesium.Cartesian3()
+	// 	);
+
+	// 	const cartoVal = new cesium.Cartographic.fromCartesian(targetCart3Val);
+	// }
+
 	const setICRF = () => {
 		if (sceneRef.current && sceneRef.current.cesiumElement) {
 			let sceneUpdate = sceneRef.current.cesiumElement.postUpdate;
 			console.log(sceneRef);
 
 			if (sceneUpdate._listeners[1] && sceneUpdate._listeners[1].name === 'icrf') {
-				sceneUpdate.removeEventListener(icrf);
+				sceneUpdate.removeEventListener(sceneUpdate._listeners[1]);
 				console.log('if ', sceneUpdate._listeners);
 			} else {
 				sceneUpdate.addEventListener(icrf);
@@ -171,63 +191,73 @@ function App() {
 
 	return (
 		<>
-			{positionsOverTime !== null ? (
-				<Viewer
-					full
-					ref={viewerRef}
-					geocoder={false}
-					navigationHelpButton={false}
-					shouldAnimate={false}
-					onClick={() => logPosition()}
-				>
-					<CustomToolbar
-						setICRF={setICRF}
-						collisionObjects={collisionObjectsArr}
-						toggleOrbitsOn={toggleOrbitsOn}
-						clearOrbits={clearOrbits}
-						goToCollisionTime={goToCollisionTime}
-					/>
-					<Scene ref={sceneRef} />
-					{positionsOverTime.map((orbit, idx) => (
-						<Entity
-							key={idx}
-							// entityCollection={satCollection}
-							position={orbit.orbit}
-							path={
-								orbit.selected
-									? {
-											leadTime: orbit.orbitalPeriod * 60,
-											trailTime: 0,
-											// trailTime: (orbit.orbitalPeriod * 65) / 2 + 5,
-											material: cesium.Color.AQUA,
-											resolution: 600,
-											width: 1,
-									  }
-									: {}
-							}
-							name={orbit.name}
-							label={{
-								text: orbit.name,
-								scale: 0.5,
-								pixelOffset: new cesium.Cartesian2(-25, 17),
+			<Viewer
+				full
+				ref={viewerRef}
+				geocoder={false}
+				navigationHelpButton={false}
+				shouldAnimate={false}
+				baseLayerPicker={false}
+				imageryProvider={false}
+				onClick={() => logPosition()}
+			>
+				<CustomToolbar
+					setICRF={setICRF}
+					collisionObjects={collisionObjectsArr}
+					toggleOrbitsOn={toggleOrbitsOn}
+					clearOrbits={clearOrbits}
+					goToCollisionTime={goToCollisionTime}
+				/>
+				<ImageryLayer imageryProvider={imageryProviderDay} show={true} />
+				<ImageryLayer imageryProvider={imageryProviderNight} dayAlpha={0} />
+				<Globe enableLighting={true} />
+				<Scene ref={sceneRef} />
+				{positionsOverTime !== null ? (
+					<>
+						{positionsOverTime.map((orbit, idx) => (
+							<Entity
+								key={idx}
+								// entityCollection={satCollection}
+								position={orbit.orbit}
+								path={
+									orbit.selected
+										? {
+												leadTime: orbit.orbitalPeriod * 60,
+												trailTime: 0,
+												material: cesium.Color.DARKCYAN,
+												resolution: 600,
+												width: 1,
+										  }
+										: {}
+								}
+								name={orbit.name}
+								// description={}
+								label={{
+									text: orbit.name,
+									scale: 0.5,
+									pixelOffset: new cesium.Cartesian2(-25, 17),
+								}}
+								point={{ pixelSize: 10, color: cesium.Color.WHITE }}
+							/>
+						))}
+					</>
+				) : (
+					<>
+						<h1
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								color: '#fff',
+								position: 'absolute',
+								zIndex: 100,
 							}}
-							point={{ pixelSize: 7, color: cesium.Color.RED }}
-						/>
-					))}
-				</Viewer>
-			) : (
-				<>
-					<h1
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-						}}
-					>
-						Loading Satellites...
-					</h1>
-				</>
-			)}
+						>
+							Loading Satellites...
+						</h1>
+					</>
+				)}
+			</Viewer>
 		</>
 	);
 }
