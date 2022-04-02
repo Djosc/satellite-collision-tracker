@@ -84,7 +84,7 @@ export const computeOrbitInertial = (tleLine1, tleLine2) => {
 	const orbitalPeriod = getOrbitalPeriod(satrec);
 
 	const totalSeconds = 700000;
-	const timeStepInSeconds = 100;
+	const timeStepInSeconds = 50;
 	const start = JulianDate.fromDate(new Date());
 
 	const sampledPositionInertial = new SampledPositionProperty(ReferenceFrame.INERTIAL);
@@ -191,4 +191,35 @@ const eNotationToPercent = (maxProbability) => {
 	let num = Number(maxProbability);
 	let string = (num * 100).toFixed(2).toString();
 	return (string += '%');
+};
+
+export const getDescription = (orbitData) => {
+	// 	const description = `
+	// 	<div class="">
+	// 	<h3>Position</h3>
+	// 	<table class="">
+	// 		<thead>
+	// 			<tr>
+	// 				<th>Name</th>
+	// 				<th>Latitude</th>
+	// 				<th>Longitude</th>
+	// 				<th>Altitude</th>
+	// 			</tr>
+	// 		</thead>
+	// 		<tbody>
+	// 			<tr>
+	// 				<td>${name}</td>
+	// 				<td>${position.latitude.toFixed(2)}&deg</td>
+	// 				<td>${position.longitude.toFixed(2)}&deg</td>
+	// 				${isGroundStation ? "" : `<td>${(position.height / 1000).toFixed(2)} km</td>`}
+	// 				${isGroundStation ? "" : `<td>${position.velocity.toFixed(2)} km/s</td>`}
+	// 			</tr>
+	// 		</tbody>
+	// 	</table>
+	// 	${this.renderPasses(passes, time, isGroundStation)}
+	// 	${typeof tle === "undefined" ? "" : this.renderTLE(tle)}
+	// </div>
+	// 	`
+
+	return description;
 };
