@@ -159,7 +159,7 @@ function App() {
 			console.log(sceneRef);
 
 			if (sceneUpdate._listeners[1] && sceneUpdate._listeners[1].name === 'icrf') {
-				sceneUpdate.removeEventListener(icrf);
+				sceneUpdate.removeEventListener(sceneUpdate._listeners[1]);
 				console.log('if ', sceneUpdate._listeners);
 			} else {
 				sceneUpdate.addEventListener(icrf);
@@ -191,67 +191,73 @@ function App() {
 
 	return (
 		<>
-			{positionsOverTime !== null ? (
-				<Viewer
-					full
-					ref={viewerRef}
-					geocoder={false}
-					navigationHelpButton={false}
-					shouldAnimate={false}
-					shadows={true}
-					onClick={() => logPosition()}
-				>
-					<CustomToolbar
-						setICRF={setICRF}
-						collisionObjects={collisionObjectsArr}
-						toggleOrbitsOn={toggleOrbitsOn}
-						clearOrbits={clearOrbits}
-						goToCollisionTime={goToCollisionTime}
-					/>
-					<ImageryLayer imageryProvider={imageryProviderDay} show={true} />
-					<ImageryLayer imageryProvider={imageryProviderNight} dayAlpha={0} />
-					<Globe enableLighting={true} />
-					<Scene ref={sceneRef} />
-					{positionsOverTime.map((orbit, idx) => (
-						<Entity
-							key={idx}
-							// entityCollection={satCollection}
-							position={orbit.orbit}
-							path={
-								orbit.selected
-									? {
-											leadTime: orbit.orbitalPeriod * 60,
-											trailTime: 0,
-											material: cesium.Color.DARKCYAN,
-											resolution: 600,
-											width: 1,
-									  }
-									: {}
-							}
-							name={orbit.name}
-							// description={}
-							label={{
-								text: orbit.name,
-								scale: 0.5,
-								pixelOffset: new cesium.Cartesian2(-25, 17),
+			<Viewer
+				full
+				ref={viewerRef}
+				geocoder={false}
+				navigationHelpButton={false}
+				shouldAnimate={false}
+				baseLayerPicker={false}
+				imageryProvider={false}
+				onClick={() => logPosition()}
+			>
+				<CustomToolbar
+					setICRF={setICRF}
+					collisionObjects={collisionObjectsArr}
+					toggleOrbitsOn={toggleOrbitsOn}
+					clearOrbits={clearOrbits}
+					goToCollisionTime={goToCollisionTime}
+				/>
+				<ImageryLayer imageryProvider={imageryProviderDay} show={true} />
+				<ImageryLayer imageryProvider={imageryProviderNight} dayAlpha={0} />
+				<Globe enableLighting={true} />
+				<Scene ref={sceneRef} />
+				{positionsOverTime !== null ? (
+					<>
+						{positionsOverTime.map((orbit, idx) => (
+							<Entity
+								key={idx}
+								// entityCollection={satCollection}
+								position={orbit.orbit}
+								path={
+									orbit.selected
+										? {
+												leadTime: orbit.orbitalPeriod * 60,
+												trailTime: 0,
+												material: cesium.Color.DARKCYAN,
+												resolution: 600,
+												width: 1,
+										  }
+										: {}
+								}
+								name={orbit.name}
+								// description={}
+								label={{
+									text: orbit.name,
+									scale: 0.5,
+									pixelOffset: new cesium.Cartesian2(-25, 17),
+								}}
+								point={{ pixelSize: 10, color: cesium.Color.WHITE }}
+							/>
+						))}
+					</>
+				) : (
+					<>
+						<h1
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								color: '#fff',
+								position: 'absolute',
+								zIndex: 100,
 							}}
-							point={{ pixelSize: 10, color: cesium.Color.WHITE }}
-						/>
-					))}
-				</Viewer>
-			) : (
-				<>
-					<h1
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-						}}
-					>
-						Loading Satellites...
-					</h1>
-				</>
-			)}
+						>
+							Loading Satellites...
+						</h1>
+					</>
+				)}
+			</Viewer>
 		</>
 	);
 }
