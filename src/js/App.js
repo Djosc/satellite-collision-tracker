@@ -267,9 +267,11 @@ function App() {
 					<>
 						<h1
 							style={{
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
+								position: 'absolute',
+								left: '50%',
+								top: '15px',
+								color: '#fff',
+								transform: 'translateX(-50%)',
 							}}
 						>
 							Loading Satellites...

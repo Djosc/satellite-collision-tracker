@@ -233,14 +233,14 @@ const eNotationToPercent = (maxProbability) => {
 
 export const renderDescription = (cartoData) => {
 	const description = `
-		<div class="description-container">
+		<div class="description-container" style="text-align:center;">
 		<h3 class="description-heading">Collision Location</h3>
-		<table>
+		<table style="text-align:center; margin-left:auto; margin-right:auto;">
 			<thead>
 				<tr>
-					<th>Latitude</th>
-					<th>Longitude</th>
-					<th>Altitude</th>
+					<th style="padding:6px;">Latitude</th>
+					<th style="padding:6px;">Longitude</th>
+					<th style="padding:6px;">Altitude</th>
 				</tr>
 			</thead>
 			<tbody>
