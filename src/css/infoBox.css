@@ -1,0 +1,10 @@
+/* @import url('../../dist/Widgets/InfoBox/InfoBoxDescription.css'); */
+
+.cesium-infoBox-description {
+	text-align: center;
+}
+
+.description-container {
+	text-align: center;
+	background-color: red;
+}

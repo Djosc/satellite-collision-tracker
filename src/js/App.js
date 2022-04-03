@@ -10,9 +10,11 @@ import {
 	computePosition,
 	computeOrbit,
 	computeOrbitInertial,
+	getISSOrbit,
 	mapCollisionDataToObjects,
 	setOrbits,
-	getDescription,
+	setCartographic,
+	renderDescription,
 } from './utils';
 import { scrapeCollisions } from './scrape';
 
@@ -30,10 +32,11 @@ function App() {
 	// const [satPositionData, setSatPositionData] = useState(null);
 	const [collisionObjectsArr, setCollisionObjectsArr] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
+	const [ISSOrbit, setISSOrbit] = useState(null);
+	const [effectTrigger, setEffectTigger] = useState(false);
 
 	const viewerRef = useRef(null);
 	const sceneRef = useRef(null);
-
 	let isMounted = false;
 
 	useEffect(() => {
@@ -48,6 +51,8 @@ function App() {
 				.then((collisionObjects) => {
 					setCollisionObjectsArr(collisionObjects);
 				});
+
+			getISSOrbit().then((data) => setISSOrbit(data));
 		}
 
 		return () => {
@@ -58,8 +63,25 @@ function App() {
 	useEffect(() => {
 		if (collisionObjectsArr !== null) {
 			setOrbits(collisionObjectsArr).then((orbitData) => {
-				setPositionsOverTime(orbitData);
+				const orbitDataWithCarto = setCartographic(orbitData, collisionObjectsArr);
+				setPositionsOverTime(orbitDataWithCarto);
 			});
+			// 	.then(() => setEffectTigger(!effectTrigger));
+
+			// let frame = viewerRef.current.cesiumElement.infoBox.frame;
+			// console.log(frame);
+
+			// frame.addEventListener(
+			// 	'load',
+			// 	function () {
+			// 		var cssLink = frame.contentDocument.createElement('link');
+			// 		cssLink.href = cesium.buildModuleUrl('src/css/infoBox.css');
+			// 		cssLink.rel = 'stylesheet';
+			// 		cssLink.type = 'text/css';
+			// 		frame.contentDocument.head.appendChild(cssLink);
+			// 	},
+			// 	false
+			// );
 		}
 
 		return () => {};
@@ -137,22 +159,6 @@ function App() {
 		setPositionsOverTime(newOrbitArr);
 	};
 
-	// const setDescription = (satName1, satName2) => {
-	// 	const viewer = viewerRef.current.cesiumElement;
-
-	// 	const entities = viewer.entities._entities._array;
-	// 	const matchedEntity = entities.filter((idx) => satName1.includes(idx._name));
-
-	// 	console.log(matchedEntities);
-
-	// 	const targetCart3Val = matchedEntities[0]._position.getValue(
-	// 		targetTime,
-	// 		new cesium.Cartesian3()
-	// 	);
-
-	// 	const cartoVal = new cesium.Cartographic.fromCartesian(targetCart3Val);
-	// }
-
 	const setICRF = () => {
 		if (sceneRef.current && sceneRef.current.cesiumElement) {
 			let sceneUpdate = sceneRef.current.cesiumElement.postUpdate;
@@ -217,7 +223,6 @@ function App() {
 						{positionsOverTime.map((orbit, idx) => (
 							<Entity
 								key={idx}
-								// entityCollection={satCollection}
 								position={orbit.orbit}
 								path={
 									orbit.selected
@@ -231,15 +236,32 @@ function App() {
 										: {}
 								}
 								name={orbit.name}
-								// description={}
+								description={renderDescription(orbit.collisionCarto)}
 								label={{
 									text: orbit.name,
 									scale: 0.5,
 									pixelOffset: new cesium.Cartesian2(-25, 17),
 								}}
-								point={{ pixelSize: 10, color: cesium.Color.WHITE }}
+								point={{ pixelSize: 9, color: cesium.Color.WHITE }}
 							/>
 						))}
+						<Entity
+							position={ISSOrbit.orbit}
+							path={{
+								leadTime: ISSOrbit.orbitalPeriod * 60,
+								trailTime: 0,
+								material: cesium.Color.WHITE,
+								resolution: 600,
+								width: 1,
+							}}
+							name={ISSOrbit.name}
+							label={{
+								text: ISSOrbit.name,
+								scale: 0.5,
+								pixelOffset: new cesium.Cartesian2(-25, 17),
+							}}
+							point={{ pixelSize: 11, color: cesium.Color.RED }}
+						/>
 					</>
 				) : (
 					<>
@@ -248,9 +270,6 @@ function App() {
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								color: '#fff',
-								position: 'absolute',
-								zIndex: 100,
 							}}
 						>
 							Loading Satellites...
