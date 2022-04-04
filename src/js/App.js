@@ -143,6 +143,22 @@ function App() {
 		setPositionsOverTime(newOrbitArr);
 	};
 
+	// const setDescription = (satName1, satName2) => {
+	// 	const viewer = viewerRef.current.cesiumElement;
+
+	// 	const entities = viewer.entities._entities._array;
+	// 	const matchedEntity = entities.filter((idx) => satName1.includes(idx._name));
+
+	// 	console.log(matchedEntities);
+
+	// 	const targetCart3Val = matchedEntities[0]._position.getValue(
+	// 		targetTime,
+	// 		new cesium.Cartesian3()
+	// 	);
+
+	// 	const cartoVal = new cesium.Cartographic.fromCartesian(targetCart3Val);
+	// }
+
 	const setICRF = () => {
 		if (sceneRef.current && sceneRef.current.cesiumElement) {
 			let sceneUpdate = sceneRef.current.cesiumElement.postUpdate;
