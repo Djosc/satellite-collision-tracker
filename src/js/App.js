@@ -10,9 +10,11 @@ import {
 	computePosition,
 	computeOrbit,
 	computeOrbitInertial,
+	getISSOrbit,
 	mapCollisionDataToObjects,
 	setOrbits,
-	getDescription,
+	setCartographic,
+	renderDescription,
 } from './utils';
 import { scrapeCollisions } from './scrape';
 
@@ -30,10 +32,11 @@ function App() {
 	// const [satPositionData, setSatPositionData] = useState(null);
 	const [collisionObjectsArr, setCollisionObjectsArr] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
+	const [ISSOrbit, setISSOrbit] = useState(null);
+	const [effectTrigger, setEffectTigger] = useState(false);
 
 	const viewerRef = useRef(null);
 	const sceneRef = useRef(null);
-
 	let isMounted = false;
 
 	useEffect(() => {
@@ -48,6 +51,8 @@ function App() {
 				.then((collisionObjects) => {
 					setCollisionObjectsArr(collisionObjects);
 				});
+
+			getISSOrbit().then((data) => setISSOrbit(data));
 		}
 
 		return () => {
@@ -58,7 +63,8 @@ function App() {
 	useEffect(() => {
 		if (collisionObjectsArr !== null) {
 			setOrbits(collisionObjectsArr).then((orbitData) => {
-				setPositionsOverTime(orbitData);
+				const orbitDataWithCarto = setCartographic(orbitData, collisionObjectsArr);
+				setPositionsOverTime(orbitDataWithCarto);
 			});
 		}
 
@@ -102,7 +108,7 @@ function App() {
 			destination: new cesium.Cartesian3.fromDegrees(
 				cesium.Math.toDegrees(cartoVal.longitude),
 				cesium.Math.toDegrees(cartoVal.latitude),
-				cartoVal.height * 10
+				cartoVal.height * 12
 			),
 		});
 
@@ -160,10 +166,10 @@ function App() {
 
 			if (sceneUpdate._listeners[1] && sceneUpdate._listeners[1].name === 'icrf') {
 				sceneUpdate.removeEventListener(sceneUpdate._listeners[1]);
-				console.log('if ', sceneUpdate._listeners);
+				// console.log('if ', sceneUpdate._listeners);
 			} else {
 				sceneUpdate.addEventListener(icrf);
-				console.log('else ', sceneUpdate._listeners);
+				// console.log('else ', sceneUpdate._listeners);
 			}
 		}
 	};
@@ -217,7 +223,6 @@ function App() {
 						{positionsOverTime.map((orbit, idx) => (
 							<Entity
 								key={idx}
-								// entityCollection={satCollection}
 								position={orbit.orbit}
 								path={
 									orbit.selected
@@ -231,26 +236,42 @@ function App() {
 										: {}
 								}
 								name={orbit.name}
-								// description={}
+								description={renderDescription(orbit.collisionCarto)}
 								label={{
 									text: orbit.name,
 									scale: 0.5,
 									pixelOffset: new cesium.Cartesian2(-25, 17),
 								}}
-								point={{ pixelSize: 10, color: cesium.Color.WHITE }}
+								point={{ pixelSize: 9, color: cesium.Color.WHITE }}
 							/>
 						))}
+						<Entity
+							position={ISSOrbit.orbit}
+							path={{
+								leadTime: ISSOrbit.orbitalPeriod * 60,
+								trailTime: 0,
+								material: cesium.Color.WHITE,
+								resolution: 600,
+								width: 1,
+							}}
+							name={ISSOrbit.name}
+							label={{
+								text: ISSOrbit.name,
+								scale: 0.5,
+								pixelOffset: new cesium.Cartesian2(-25, 17),
+							}}
+							point={{ pixelSize: 11, color: cesium.Color.RED }}
+						/>
 					</>
 				) : (
 					<>
 						<h1
 							style={{
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								color: '#fff',
 								position: 'absolute',
-								zIndex: 100,
+								left: '50%',
+								top: '15px',
+								color: '#fff',
+								transform: 'translateX(-50%)',
 							}}
 						>
 							Loading Satellites...

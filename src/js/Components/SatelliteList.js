@@ -5,6 +5,8 @@ const SatelliteList = ({
 	toggleOrbitsOn,
 	clearOrbits,
 	goToCollisionTime,
+	selectedIdx,
+	setSelectedIdx,
 }) => {
 	return (
 		<div className="toolbar-dropdown">
@@ -22,6 +24,9 @@ const SatelliteList = ({
 						<th>
 							Rel Velocity <br /> (km/sec)
 						</th>
+						<th>
+							Time <br /> (UTC)
+						</th>
 					</tr>
 				</thead>
 				<tbody className="">
@@ -33,23 +38,25 @@ const SatelliteList = ({
 							<td>{obj.MAX_PROBABILITY}</td>
 							<td>{obj.MIN_RANGE_KM}</td>
 							<td>{obj.REL_VELOCITY_KM_SEC}</td>
-							<td className="">
+							<td>{obj.START_UTC.slice(5, -4)}</td>
+							<td>
 								<button
 									className="btn"
 									onClick={() => {
 										goToCollisionTime(obj.START_UTC, obj.NAME_1, obj.NAME_2);
 										clearOrbits();
 										toggleOrbitsOn(obj.NAME_1, obj.NAME_2);
+										setSelectedIdx(idx);
 									}}
 								>
 									View
 								</button>
-								{/* <button
-									className="btn"
-									onClick={() => toggleOrbits(obj.NAME_1, obj.NAME_2)}
-								>
-									Orbits
-								</button> */}
+							</td>
+							<td style={{ position: 'relative', width: '16px' }}>
+								{console.log(selectedIdx)}
+								<span
+									className={selectedIdx === idx ? 'on-off green' : 'on-off red'}
+								></span>
 							</td>
 						</tr>
 					))}

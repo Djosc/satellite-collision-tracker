@@ -1,10 +1,12 @@
 import {
 	Cartesian3,
+	Cartographic,
 	SampledPositionProperty,
 	JulianDate,
 	ReferenceFrame,
 	ExtrapolationType,
 	LagrangePolynomialApproximation,
+	Math,
 } from 'cesium';
 import * as satellite from 'satellite.js';
 
@@ -19,30 +21,20 @@ export const fetchTLE = async (id) => {
 	return data;
 };
 
-export const computePosition = (tleData) => {
-	var [tleLine0, tleLine1, tleLine2] = tleData.split('\n');
+export const getISSOrbit = async () => {
+	const data = await fetchTLE(25544);
 
-	var satrec = satellite.twoline2satrec(tleLine1, tleLine2);
+	let [tleLine0, tleLine1, tleLine2] = data.split('\n');
+	tleLine0 = tleLine0.trim();
 
-	var date = new Date();
+	const ISSOrbitData = computeOrbitInertial(tleLine1, tleLine2);
 
-	var positionAndVelocity = satellite.propagate(satrec, date);
-
-	var gmst = satellite.gstime(date);
-
-	var position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
-
-	// console.log('tleLine1 ' + tleLine1);
-	// console.log('tleLine2 ' + tleLine2);
-	console.log(position);
-
-	var cartesian3Data = Cartesian3.fromRadians(
-		position.longitude,
-		position.latitude,
-		position.height * 1000
-	);
-
-	return cartesian3Data;
+	return {
+		orbit: ISSOrbitData[0],
+		name: tleLine0,
+		orbitalPeriod: ISSOrbitData[1],
+		selected: false,
+	};
 };
 
 // export const computeOrbit = (tleLine1, tleLine2) => {
@@ -122,7 +114,7 @@ const getOrbitalPeriod = (satrec) => {
 export const setOrbits = async (collisionObjects) => {
 	let orbitsArr = [];
 	let tleArr = [];
-	// var satIDs = satData.map((idx) => idx.NORAD_CAT_ID);
+
 	let satIDs = collisionObjects.map((idx) => ({
 		one: idx.NORAD_CAT_ID_1,
 		two: idx.NORAD_CAT_ID_2,
@@ -142,6 +134,7 @@ export const setOrbits = async (collisionObjects) => {
 
 			// var orbitData = computeOrbit(tleLine1, tleLine2);
 			let orbitData = computeOrbitInertial(tleLine1, tleLine2);
+			// let cartographicPosition = collisionObjects.forEach getTargetCartographic()
 
 			orbitsArr.push({
 				orbit: orbitData[0],
@@ -155,6 +148,51 @@ export const setOrbits = async (collisionObjects) => {
 	});
 
 	return orbits;
+};
+
+/**
+ * Uses the start time of a collision event, computes the cartographic position of the collision
+ * and adds it as a property to the orbit data. This is so it can be displayed in the description
+ * of a selected entity.
+ */
+export const setCartographic = (orbitData, collisionObjsArr) => {
+	const collisions = [...collisionObjsArr];
+
+	let targetTimes = [];
+
+	collisions.forEach((idx) => {
+		const start = new Date(idx.START_UTC);
+		const isoDate = new Date(
+			start.getTime() - start.getTimezoneOffset() * 60000
+		).toISOString();
+
+		const targetTime = JulianDate.fromIso8601(isoDate);
+
+		targetTimes.push(targetTime);
+	});
+
+	for (let i = 0, j = 0; i < targetTimes.length; i++, j += 2) {
+		const targetCart3Val1 = orbitData[j].orbit.getValue(targetTimes[i], new Cartesian3());
+
+		const targetCart3Val2 = orbitData[j + 1].orbit.getValue(
+			targetTimes[i],
+			new Cartesian3()
+		);
+
+		let cartoVal1 = new Cartographic.fromCartesian(targetCart3Val1);
+		let cartoVal2 = new Cartographic.fromCartesian(targetCart3Val2);
+
+		cartoVal1.longitude = Math.toDegrees(cartoVal1.longitude);
+		cartoVal1.latitude = Math.toDegrees(cartoVal1.latitude);
+		cartoVal2.longitude = Math.toDegrees(cartoVal2.longitude);
+		cartoVal2.latitude = Math.toDegrees(cartoVal2.latitude);
+
+		orbitData[j].collisionCarto = cartoVal1;
+		orbitData[j + 1].collisionCarto = cartoVal2;
+	}
+
+	const orbitsWithCarto = orbitData;
+	return orbitsWithCarto;
 };
 
 export const mapCollisionDataToObjects = async (collisionData) => {
@@ -193,33 +231,30 @@ const eNotationToPercent = (maxProbability) => {
 	return (string += '%');
 };
 
-export const getDescription = (orbitData) => {
-	// 	const description = `
-	// 	<div class="">
-	// 	<h3>Position</h3>
-	// 	<table class="">
-	// 		<thead>
-	// 			<tr>
-	// 				<th>Name</th>
-	// 				<th>Latitude</th>
-	// 				<th>Longitude</th>
-	// 				<th>Altitude</th>
-	// 			</tr>
-	// 		</thead>
-	// 		<tbody>
-	// 			<tr>
-	// 				<td>${name}</td>
-	// 				<td>${position.latitude.toFixed(2)}&deg</td>
-	// 				<td>${position.longitude.toFixed(2)}&deg</td>
-	// 				${isGroundStation ? "" : `<td>${(position.height / 1000).toFixed(2)} km</td>`}
-	// 				${isGroundStation ? "" : `<td>${position.velocity.toFixed(2)} km/s</td>`}
-	// 			</tr>
-	// 		</tbody>
-	// 	</table>
-	// 	${this.renderPasses(passes, time, isGroundStation)}
-	// 	${typeof tle === "undefined" ? "" : this.renderTLE(tle)}
-	// </div>
-	// 	`
+export const renderDescription = (cartoData) => {
+	const description = `
+		<div class="description-container" style="text-align:center;">
+		<h3 class="description-heading">Collision Location</h3>
+		<table style="text-align:center; margin-left:auto; margin-right:auto;">
+			<thead>
+				<tr>
+					<th style="padding:6px; border: 1px solid gray">Latitude</th>
+					<th style="padding:6px; border: 1px solid gray">Longitude</th>
+					<th style="padding:6px; border: 1px solid gray">Altitude</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr >
+					<td style="padding:6px; border: 1px solid gray">${cartoData.latitude.toFixed(2)}&deg</td>
+					<td style="padding:6px; border: 1px solid gray">${cartoData.longitude.toFixed(2)}&deg</td>
+					<td style="padding:6px; border: 1px solid gray">${(cartoData.height / 1000).toFixed(
+						2
+					)} km</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+		`;
 
 	return description;
 };
