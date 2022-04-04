@@ -238,16 +238,18 @@ export const renderDescription = (cartoData) => {
 		<table style="text-align:center; margin-left:auto; margin-right:auto;">
 			<thead>
 				<tr>
-					<th style="padding:6px;">Latitude</th>
-					<th style="padding:6px;">Longitude</th>
-					<th style="padding:6px;">Altitude</th>
+					<th style="padding:6px; border: 1px solid gray">Latitude</th>
+					<th style="padding:6px; border: 1px solid gray">Longitude</th>
+					<th style="padding:6px; border: 1px solid gray">Altitude</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<td>${cartoData.latitude.toFixed(2)}&deg</td>
-					<td>${cartoData.longitude.toFixed(2)}&deg</td>
-					<td>${(cartoData.height / 1000).toFixed(2)} km</td>
+				<tr >
+					<td style="padding:6px; border: 1px solid gray">${cartoData.latitude.toFixed(2)}&deg</td>
+					<td style="padding:6px; border: 1px solid gray">${cartoData.longitude.toFixed(2)}&deg</td>
+					<td style="padding:6px; border: 1px solid gray">${(cartoData.height / 1000).toFixed(
+						2
+					)} km</td>
 				</tr>
 			</tbody>
 		</table>

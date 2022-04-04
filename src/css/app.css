@@ -42,7 +42,7 @@ tr:nth-child(odd) {
 }
 
 td {
-	font-size: 11;
+	font-size: 12px;
 	padding: 0.3rem;
 }
 
@@ -57,4 +57,22 @@ td {
 
 .cesium-infoBox-close {
 	display: none !important;
+}
+
+.on-off {
+	height: 12px;
+	width: 12px;
+	content: '';
+	border-radius: 50%;
+	position: absolute;
+	bottom: 13px;
+	left: 7px;
+}
+
+.green {
+	background-color: green;
+}
+
+.red {
+	background-color: red;
 }

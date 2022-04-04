@@ -9,6 +9,7 @@ const CustomToolbar = ({
 	goToCollisionTime,
 }) => {
 	const [showSatList, setShowSatList] = useState(false);
+	const [selectedIdx, setSelectedIdx] = useState(null);
 
 	return (
 		<>
@@ -28,6 +29,8 @@ const CustomToolbar = ({
 						toggleOrbitsOn={toggleOrbitsOn}
 						clearOrbits={clearOrbits}
 						goToCollisionTime={goToCollisionTime}
+						selectedIdx={selectedIdx}
+						setSelectedIdx={setSelectedIdx}
 					/>
 				) : (
 					<></>

@@ -66,22 +66,6 @@ function App() {
 				const orbitDataWithCarto = setCartographic(orbitData, collisionObjectsArr);
 				setPositionsOverTime(orbitDataWithCarto);
 			});
-			// 	.then(() => setEffectTigger(!effectTrigger));
-
-			// let frame = viewerRef.current.cesiumElement.infoBox.frame;
-			// console.log(frame);
-
-			// frame.addEventListener(
-			// 	'load',
-			// 	function () {
-			// 		var cssLink = frame.contentDocument.createElement('link');
-			// 		cssLink.href = cesium.buildModuleUrl('src/css/infoBox.css');
-			// 		cssLink.rel = 'stylesheet';
-			// 		cssLink.type = 'text/css';
-			// 		frame.contentDocument.head.appendChild(cssLink);
-			// 	},
-			// 	false
-			// );
 		}
 
 		return () => {};
@@ -124,7 +108,7 @@ function App() {
 			destination: new cesium.Cartesian3.fromDegrees(
 				cesium.Math.toDegrees(cartoVal.longitude),
 				cesium.Math.toDegrees(cartoVal.latitude),
-				cartoVal.height * 10
+				cartoVal.height * 12
 			),
 		});
 
@@ -166,10 +150,10 @@ function App() {
 
 			if (sceneUpdate._listeners[1] && sceneUpdate._listeners[1].name === 'icrf') {
 				sceneUpdate.removeEventListener(sceneUpdate._listeners[1]);
-				console.log('if ', sceneUpdate._listeners);
+				// console.log('if ', sceneUpdate._listeners);
 			} else {
 				sceneUpdate.addEventListener(icrf);
-				console.log('else ', sceneUpdate._listeners);
+				// console.log('else ', sceneUpdate._listeners);
 			}
 		}
 	};
