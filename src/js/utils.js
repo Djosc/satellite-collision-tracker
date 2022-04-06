@@ -238,9 +238,9 @@ export const renderDescription = (cartoData) => {
 		<table style="text-align:center; margin-left:auto; margin-right:auto;">
 			<thead>
 				<tr>
-					<th style="padding:6px; border: 1px solid gray">Latitude</th>
-					<th style="padding:6px; border: 1px solid gray">Longitude</th>
-					<th style="padding:6px; border: 1px solid gray">Altitude</th>
+					<th style="padding:6px; border: 1px solid gray; font-size:14px">Latitude</th>
+					<th style="padding:6px; border: 1px solid gray; font-size:14px">Longitude</th>
+					<th style="padding:6px; border: 1px solid gray; font-size:14px">Altitude</th>
 				</tr>
 			</thead>
 			<tbody>
