@@ -37,39 +37,6 @@ export const getISSOrbit = async () => {
 	};
 };
 
-// export const computeOrbit = (tleLine1, tleLine2) => {
-// 	const cart3Arr = [];
-
-// 	const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
-
-// 	const orbitalPeriod = getOrbitalPeriod(satrec);
-
-// 	const totalSeconds = 700000;
-// 	const timeStepInSeconds = 20;
-// 	const start = JulianDate.fromDate(new Date());
-
-// 	const positionsOverTime = new SampledPositionProperty();
-
-// 	for (let i = 0; i < totalSeconds; i += timeStepInSeconds) {
-// 		const time = JulianDate.addSeconds(start, i, new JulianDate());
-// 		const jsDate = JulianDate.toDate(time);
-
-// 		const positionAndVelocity = satellite.propagate(satrec, jsDate);
-// 		const gmst = satellite.gstime(jsDate);
-// 		const pos = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
-
-// 		const position = Cartesian3.fromRadians(
-// 			pos.longitude,
-// 			pos.latitude,
-// 			pos.height * 1000
-// 		);
-
-// 		positionsOverTime.addSample(time, position);
-// 	}
-
-// 	return [positionsOverTime, orbitalPeriod];
-// };
-
 export const computeOrbitInertial = (tleLine1, tleLine2) => {
 	const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
 
@@ -132,9 +99,7 @@ export const setOrbits = async (collisionObjects) => {
 			let [tleLine0, tleLine1, tleLine2] = tle.split('\n');
 			tleLine0 = tleLine0.trim();
 
-			// var orbitData = computeOrbit(tleLine1, tleLine2);
 			let orbitData = computeOrbitInertial(tleLine1, tleLine2);
-			// let cartographicPosition = collisionObjects.forEach getTargetCartographic()
 
 			orbitsArr.push({
 				orbit: orbitData[0],
