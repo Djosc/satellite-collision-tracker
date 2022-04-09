@@ -72,9 +72,9 @@ function App() {
 	}, [collisionObjectsArr]);
 
 	const goToCollisionTime = (collisionTime, satName1, satName2) => {
-		const start = new Date(collisionTime);
+		const closestApproachTime = new Date(collisionTime);
 		const isoDate = new Date(
-			start.getTime() - start.getTimezoneOffset() * 60000
+			closestApproachTime.getTime() - closestApproachTime.getTimezoneOffset() * 60000
 		).toISOString();
 
 		const targetTime = cesium.JulianDate.fromIso8601(isoDate);

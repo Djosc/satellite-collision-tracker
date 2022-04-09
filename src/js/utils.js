@@ -126,9 +126,9 @@ export const setCartographic = (orbitData, collisionObjsArr) => {
 	let targetTimes = [];
 
 	collisions.forEach((idx) => {
-		const start = new Date(idx.START_UTC);
+		const closestApproachTime = new Date(idx.CLOSEST_APPROACH_UTC);
 		const isoDate = new Date(
-			start.getTime() - start.getTimezoneOffset() * 60000
+			closestApproachTime.getTime() - closestApproachTime.getTimezoneOffset() * 60000
 		).toISOString();
 
 		const targetTime = JulianDate.fromIso8601(isoDate);

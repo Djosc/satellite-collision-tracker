@@ -38,12 +38,12 @@ const SatelliteList = ({
 							<td>{obj.MAX_PROBABILITY}</td>
 							<td>{obj.MIN_RANGE_KM}</td>
 							<td>{obj.REL_VELOCITY_KM_SEC}</td>
-							<td>{obj.START_UTC.slice(5, -4)}</td>
+							<td>{obj.CLOSEST_APPROACH_UTC.slice(5, -4)}</td>
 							<td>
 								<button
 									className="btn"
 									onClick={() => {
-										goToCollisionTime(obj.START_UTC, obj.NAME_1, obj.NAME_2);
+										goToCollisionTime(obj.CLOSEST_APPROACH_UTC, obj.NAME_1, obj.NAME_2);
 										clearOrbits();
 										toggleOrbitsOn(obj.NAME_1, obj.NAME_2);
 										setSelectedIdx(idx);
