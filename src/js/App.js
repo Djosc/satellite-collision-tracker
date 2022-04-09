@@ -72,9 +72,9 @@ function App() {
 	}, [collisionObjectsArr]);
 
 	const goToCollisionTime = (collisionTime, satName1, satName2) => {
-		const start = new Date(collisionTime);
+		const closestApproachTime = new Date(collisionTime);
 		const isoDate = new Date(
-			start.getTime() - start.getTimezoneOffset() * 60000
+			closestApproachTime.getTime() - closestApproachTime.getTimezoneOffset() * 60000
 		).toISOString();
 
 		const targetTime = cesium.JulianDate.fromIso8601(isoDate);
@@ -85,8 +85,8 @@ function App() {
 			new cesium.JulianDate()
 		);
 
-		const clock = viewerRef.current.cesiumElement.clock;
 		const viewer = viewerRef.current.cesiumElement;
+		const clock = viewerRef.current.cesiumElement.clock;
 
 		clock._currentTime = fiveMinuteOffset;
 		viewerRef.current.cesiumElement.timeline.zoomTo(fiveMinuteOffset, endTime);
@@ -142,22 +142,6 @@ function App() {
 
 		setPositionsOverTime(newOrbitArr);
 	};
-
-	// const setDescription = (satName1, satName2) => {
-	// 	const viewer = viewerRef.current.cesiumElement;
-
-	// 	const entities = viewer.entities._entities._array;
-	// 	const matchedEntity = entities.filter((idx) => satName1.includes(idx._name));
-
-	// 	console.log(matchedEntities);
-
-	// 	const targetCart3Val = matchedEntities[0]._position.getValue(
-	// 		targetTime,
-	// 		new cesium.Cartesian3()
-	// 	);
-
-	// 	const cartoVal = new cesium.Cartographic.fromCartesian(targetCart3Val);
-	// }
 
 	const setICRF = () => {
 		if (sceneRef.current && sceneRef.current.cesiumElement) {

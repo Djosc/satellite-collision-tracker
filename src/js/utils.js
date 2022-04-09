@@ -37,39 +37,6 @@ export const getISSOrbit = async () => {
 	};
 };
 
-// export const computeOrbit = (tleLine1, tleLine2) => {
-// 	const cart3Arr = [];
-
-// 	const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
-
-// 	const orbitalPeriod = getOrbitalPeriod(satrec);
-
-// 	const totalSeconds = 700000;
-// 	const timeStepInSeconds = 20;
-// 	const start = JulianDate.fromDate(new Date());
-
-// 	const positionsOverTime = new SampledPositionProperty();
-
-// 	for (let i = 0; i < totalSeconds; i += timeStepInSeconds) {
-// 		const time = JulianDate.addSeconds(start, i, new JulianDate());
-// 		const jsDate = JulianDate.toDate(time);
-
-// 		const positionAndVelocity = satellite.propagate(satrec, jsDate);
-// 		const gmst = satellite.gstime(jsDate);
-// 		const pos = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
-
-// 		const position = Cartesian3.fromRadians(
-// 			pos.longitude,
-// 			pos.latitude,
-// 			pos.height * 1000
-// 		);
-
-// 		positionsOverTime.addSample(time, position);
-// 	}
-
-// 	return [positionsOverTime, orbitalPeriod];
-// };
-
 export const computeOrbitInertial = (tleLine1, tleLine2) => {
 	const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
 
@@ -132,9 +99,7 @@ export const setOrbits = async (collisionObjects) => {
 			let [tleLine0, tleLine1, tleLine2] = tle.split('\n');
 			tleLine0 = tleLine0.trim();
 
-			// var orbitData = computeOrbit(tleLine1, tleLine2);
 			let orbitData = computeOrbitInertial(tleLine1, tleLine2);
-			// let cartographicPosition = collisionObjects.forEach getTargetCartographic()
 
 			orbitsArr.push({
 				orbit: orbitData[0],
@@ -161,9 +126,9 @@ export const setCartographic = (orbitData, collisionObjsArr) => {
 	let targetTimes = [];
 
 	collisions.forEach((idx) => {
-		const start = new Date(idx.START_UTC);
+		const closestApproachTime = new Date(idx.CLOSEST_APPROACH_UTC);
 		const isoDate = new Date(
-			start.getTime() - start.getTimezoneOffset() * 60000
+			closestApproachTime.getTime() - closestApproachTime.getTimezoneOffset() * 60000
 		).toISOString();
 
 		const targetTime = JulianDate.fromIso8601(isoDate);
@@ -238,9 +203,9 @@ export const renderDescription = (cartoData) => {
 		<table style="text-align:center; margin-left:auto; margin-right:auto;">
 			<thead>
 				<tr>
-					<th style="padding:6px; border: 1px solid gray">Latitude</th>
-					<th style="padding:6px; border: 1px solid gray">Longitude</th>
-					<th style="padding:6px; border: 1px solid gray">Altitude</th>
+					<th style="padding:6px; border: 1px solid gray; font-size:14px">Latitude</th>
+					<th style="padding:6px; border: 1px solid gray; font-size:14px">Longitude</th>
+					<th style="padding:6px; border: 1px solid gray; font-size:14px">Altitude</th>
 				</tr>
 			</thead>
 			<tbody>
