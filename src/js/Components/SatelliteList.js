@@ -53,7 +53,6 @@ const SatelliteList = ({
 								</button>
 							</td>
 							<td style={{ position: 'relative', width: '16px' }}>
-								{console.log(selectedIdx)}
 								<span
 									className={selectedIdx === idx ? 'on-off green' : 'on-off red'}
 								></span>
