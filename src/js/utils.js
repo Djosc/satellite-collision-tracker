@@ -108,7 +108,6 @@ export const setOrbits = async (collisionObjects) => {
 				selected: false,
 			});
 		});
-		// console.log(orbitsArr);
 		return orbitsArr;
 	});
 
@@ -186,7 +185,6 @@ export const mapCollisionDataToObjects = async (collisionData) => {
 		});
 	}
 
-	// console.log(collisionsArr);
 	return collisionsArr;
 };
 

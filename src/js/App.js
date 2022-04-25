@@ -3,13 +3,9 @@ import CustomToolbar from './Components/CustomToolbar';
 
 import * as cesium from 'cesium';
 
-import { CzmlDataSource, Entity, Globe, ImageryLayer, Scene, Sun, Viewer } from 'resium';
+import { Entity, Globe, ImageryLayer, Scene, Viewer } from 'resium';
 
 import {
-	fetchTLE,
-	computePosition,
-	computeOrbit,
-	computeOrbitInertial,
 	getISSOrbit,
 	mapCollisionDataToObjects,
 	setOrbits,
@@ -18,22 +14,15 @@ import {
 } from './utils';
 import { scrapeCollisions } from './scrape';
 
-import { satellites } from '../data/czml';
-
-// import satData from '../data/sats.json';
-import satData from '../data/collision.json';
-
 // Place these here so resium read-only props aren't changed
 // (it causes the viewer to re-initialize)
 const imageryProviderDay = new cesium.IonImageryProvider({ assetId: 3845 });
 const imageryProviderNight = new cesium.IonImageryProvider({ assetId: 3812 });
 
 function App() {
-	// const [satPositionData, setSatPositionData] = useState(null);
 	const [collisionObjectsArr, setCollisionObjectsArr] = useState(null);
 	const [positionsOverTime, setPositionsOverTime] = useState(null);
 	const [ISSOrbit, setISSOrbit] = useState(null);
-	const [effectTrigger, setEffectTigger] = useState(false);
 
 	const viewerRef = useRef(null);
 	const sceneRef = useRef(null);
@@ -150,10 +139,8 @@ function App() {
 
 			if (sceneUpdate._listeners[1] && sceneUpdate._listeners[1].name === 'icrf') {
 				sceneUpdate.removeEventListener(sceneUpdate._listeners[1]);
-				// console.log('if ', sceneUpdate._listeners);
 			} else {
 				sceneUpdate.addEventListener(icrf);
-				// console.log('else ', sceneUpdate._listeners);
 			}
 		}
 	};
