@@ -194,10 +194,15 @@ const eNotationToPercent = (maxProbability) => {
 	return (string += '%');
 };
 
-export const renderDescription = (cartoData) => {
+export const renderDescription = (time, orbitData) => {
+	const currOrbitPos = orbitData.getValue(time);
+	const cartoPos = new Cartographic.fromCartesian(currOrbitPos);
+	const lat = Math.toDegrees(cartoPos.latitude);
+	const lon = Math.toDegrees(cartoPos.longitude);
+	const alt = Math.toDegrees(cartoPos.height);
+
 	const description = `
 		<div class="description-container" style="text-align:center;">
-		<h3 class="description-heading">Collision Location</h3>
 		<table style="text-align:center; margin-left:auto; margin-right:auto;">
 			<thead>
 				<tr>
@@ -208,11 +213,9 @@ export const renderDescription = (cartoData) => {
 			</thead>
 			<tbody>
 				<tr >
-					<td style="padding:6px; border: 1px solid gray">${cartoData.latitude.toFixed(2)}&deg</td>
-					<td style="padding:6px; border: 1px solid gray">${cartoData.longitude.toFixed(2)}&deg</td>
-					<td style="padding:6px; border: 1px solid gray">${(cartoData.height / 1000).toFixed(
-						2
-					)} km</td>
+					<td style="padding:6px; border: 1px solid gray">${lat.toFixed(2)}&deg</td>
+					<td style="padding:6px; border: 1px solid gray">${lon.toFixed(2)}&deg</td>
+					<td style="padding:6px; border: 1px solid gray">${(alt / 1000).toFixed(2)} km</td>
 				</tr>
 			</tbody>
 		</table>

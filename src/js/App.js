@@ -207,7 +207,12 @@ function App() {
 										: {}
 								}
 								name={orbit.name}
-								description={renderDescription(orbit.collisionCarto)}
+								description={
+									new cesium.CallbackProperty((time) => {
+										const descr = renderDescription(time, orbit.orbit);
+										return descr;
+									}, false)
+								}
 								label={{
 									text: orbit.name,
 									scale: 0.5,
